@@ -1,0 +1,84 @@
+<?php
+
+include_once 'conexion.php';
+
+$sql = 'SELECT * FROM articulos';
+$sent = $pdo->prepare($sql);
+$sent->execute();
+$result = $sent->fetchAll();
+
+//var_dump($result);
+$arti_x_pag = 4;
+
+$tot_arti_contados = $sent->rowCount();
+//echo $tot_arti_contados;
+$pag = ceil($tot_arti_contados/$arti_x_pag);
+//echo $pag;
+
+?>
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <title>Práctica</title>
+  </head>
+  <body>
+    <div class="container my-5">
+    <h1 class="mb-5">Paginación</h1>
+
+        <?php 
+        if(!$_GET){
+          header('Location:index.php?pagina=1');
+        }
+        if($_GET['pagina']>$pag || $_GET['pagina']<=0)  {
+          header('Location:index.php?pagina=1');
+        }
+        $inicio = ($_GET['pagina']-1)*$arti_x_pag;
+
+        $sql_artic = 'SELECT * FROM articulos LIMIT :inicio,:articulos';
+        $sent_artic = $pdo->prepare($sql_artic);
+        $sent_artic->bindParam(':inicio', $inicio, PDO::PARAM_INT);
+        $sent_artic->bindParam(':articulos', $arti_x_pag, PDO::PARAM_INT);
+        $sent_artic->execute();
+        $resul_artic = $sent_artic->fetchAll();
+
+        ?>
+        <?php foreach($resul_artic as $reultado): ?>
+        <div class="alert alert-primary" role="alert">
+            <?php echo $reultado['titulo'] ?>
+        </div>
+        <?php endforeach ?>
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+              <li class="page-item">
+                <a class="page-link"
+                  href="index.php?pagina=<?php echo $_GET['pagina']-1 ?>">
+                  Anterior
+                </a>
+              </li>
+              <?php for($i=1;$i<=$pag;$i++): ?>
+                <li class="page-item">
+                   <a class="page-link" 
+                    href="index.php?pagina=<?php echo $i ?>">
+                    <?php echo $i ?>
+                   </a>
+                </li>
+              <?php endfor ?>
+              <li class="page-item">
+                <a class="page-link" 
+                  href="index.php?pagina=<?php echo $_GET['pagina']+1 ?>">
+                  Siguiente
+                </a>
+              </li>
+            </ul>
+        </nav>
+    </div>
+  </body>
+</html>
